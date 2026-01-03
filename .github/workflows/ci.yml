@@ -36,9 +36,7 @@ jobs:
         run: bun run build
 
       - name: Verify bundle exists
-        run: |
-          test -f dist/index.js || (echo "dist/index.js not found" && exit 1)
-          test -f dist/tiktoken_bg.wasm || (echo "dist/tiktoken_bg.wasm not found" && exit 1)
+        run: test -f dist/index.js || (echo "dist/index.js not found" && exit 1)
 
   node-smoke-test:
     runs-on: ubuntu-latest
