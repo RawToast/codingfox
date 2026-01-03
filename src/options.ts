@@ -1,6 +1,7 @@
-import { info } from "@actions/core";
+import { info, warning } from "@actions/core";
 import { minimatch } from "minimatch";
 import { TokenLimits } from "./limits";
+import { type Provider } from "./bot";
 
 export class Options {
   debug: boolean;
@@ -11,17 +12,49 @@ export class Options {
   reviewCommentLGTM: boolean;
   pathFilters: PathFilter;
   systemMessage: string;
-  openaiLightModel: string;
-  openaiHeavyModel: string;
-  openaiModelTemperature: number;
-  openaiRetries: number;
-  openaiTimeoutMS: number;
-  openaiConcurrencyLimit: number;
+
+  // AI provider configuration
+  aiProvider: Provider;
+  aiLightModel: string;
+  aiHeavyModel: string;
+  aiTemperature: number;
+  aiRetries: number;
+  aiTimeoutMs: number;
+  aiBaseUrl: string;
+  aiConcurrencyLimit: number;
+
+  // GitHub configuration
   githubConcurrencyLimit: number;
+
+  // Token limits
   lightTokenLimits: TokenLimits;
   heavyTokenLimits: TokenLimits;
-  apiBaseUrl: string;
+
+  // Locale
   language: string;
+
+  // Legacy aliases for backwards compatibility
+  get openaiLightModel(): string {
+    return this.aiLightModel;
+  }
+  get openaiHeavyModel(): string {
+    return this.aiHeavyModel;
+  }
+  get openaiModelTemperature(): number {
+    return this.aiTemperature;
+  }
+  get openaiRetries(): number {
+    return this.aiRetries;
+  }
+  get openaiTimeoutMS(): number {
+    return this.aiTimeoutMs;
+  }
+  get openaiConcurrencyLimit(): number {
+    return this.aiConcurrencyLimit;
+  }
+  get apiBaseUrl(): string {
+    return this.aiBaseUrl;
+  }
 
   constructor(
     debug: boolean,
@@ -32,15 +65,25 @@ export class Options {
     reviewCommentLGTM = false,
     pathFilters: string[] | null = null,
     systemMessage = "",
-    openaiLightModel = "gpt-3.5-turbo",
-    openaiHeavyModel = "gpt-3.5-turbo",
-    openaiModelTemperature = "0.0",
-    openaiRetries = "3",
-    openaiTimeoutMS = "120000",
-    openaiConcurrencyLimit = "6",
+    // New AI provider options
+    aiProvider = "openai",
+    aiLightModel = "gpt-4o-mini",
+    aiHeavyModel = "gpt-4o",
+    aiTemperature = "0.05",
+    aiRetries = "5",
+    aiTimeoutMs = "360000",
+    aiConcurrencyLimit = "6",
     githubConcurrencyLimit = "6",
-    apiBaseUrl = "https://api.openai.com/v1",
+    aiBaseUrl = "",
     language = "en-US",
+    // Legacy options (for backwards compatibility)
+    openaiLightModel = "",
+    openaiHeavyModel = "",
+    openaiModelTemperature = "",
+    openaiRetries = "",
+    openaiTimeoutMs = "",
+    openaiConcurrencyLimit = "",
+    openaiBaseUrl = "",
   ) {
     this.debug = debug;
     this.disableReview = disableReview;
@@ -50,16 +93,45 @@ export class Options {
     this.reviewCommentLGTM = reviewCommentLGTM;
     this.pathFilters = new PathFilter(pathFilters);
     this.systemMessage = systemMessage;
-    this.openaiLightModel = openaiLightModel;
-    this.openaiHeavyModel = openaiHeavyModel;
-    this.openaiModelTemperature = parseFloat(openaiModelTemperature);
-    this.openaiRetries = parseInt(openaiRetries);
-    this.openaiTimeoutMS = parseInt(openaiTimeoutMS);
-    this.openaiConcurrencyLimit = parseInt(openaiConcurrencyLimit);
+
+    // AI provider
+    this.aiProvider = (aiProvider || "openai") as Provider;
+
+    // Use legacy options if provided (backwards compatibility)
+    if (openaiLightModel) {
+      warning("openai_light_model is deprecated, use ai_light_model instead");
+    }
+    if (openaiHeavyModel) {
+      warning("openai_heavy_model is deprecated, use ai_heavy_model instead");
+    }
+    if (openaiModelTemperature) {
+      warning("openai_model_temperature is deprecated, use ai_temperature instead");
+    }
+    if (openaiRetries) {
+      warning("openai_retries is deprecated, use ai_retries instead");
+    }
+    if (openaiTimeoutMs) {
+      warning("openai_timeout_ms is deprecated, use ai_timeout_ms instead");
+    }
+    if (openaiConcurrencyLimit) {
+      warning("openai_concurrency_limit is deprecated, use ai_concurrency_limit instead");
+    }
+    if (openaiBaseUrl) {
+      warning("openai_base_url is deprecated, use ai_base_url instead");
+    }
+
+    // Apply values with legacy fallbacks
+    this.aiLightModel = openaiLightModel || aiLightModel;
+    this.aiHeavyModel = openaiHeavyModel || aiHeavyModel;
+    this.aiTemperature = parseFloat(openaiModelTemperature || aiTemperature);
+    this.aiRetries = parseInt(openaiRetries || aiRetries);
+    this.aiTimeoutMs = parseInt(openaiTimeoutMs || aiTimeoutMs);
+    this.aiConcurrencyLimit = parseInt(openaiConcurrencyLimit || aiConcurrencyLimit);
+    this.aiBaseUrl = openaiBaseUrl || aiBaseUrl;
+
     this.githubConcurrencyLimit = parseInt(githubConcurrencyLimit);
-    this.lightTokenLimits = new TokenLimits(openaiLightModel);
-    this.heavyTokenLimits = new TokenLimits(openaiHeavyModel);
-    this.apiBaseUrl = apiBaseUrl;
+    this.lightTokenLimits = new TokenLimits(this.aiLightModel);
+    this.heavyTokenLimits = new TokenLimits(this.aiHeavyModel);
     this.language = language;
   }
 
@@ -73,16 +145,17 @@ export class Options {
     info(`review_comment_lgtm: ${this.reviewCommentLGTM}`);
     info(`path_filters: ${this.pathFilters}`);
     info(`system_message: ${this.systemMessage}`);
-    info(`openai_light_model: ${this.openaiLightModel}`);
-    info(`openai_heavy_model: ${this.openaiHeavyModel}`);
-    info(`openai_model_temperature: ${this.openaiModelTemperature}`);
-    info(`openai_retries: ${this.openaiRetries}`);
-    info(`openai_timeout_ms: ${this.openaiTimeoutMS}`);
-    info(`openai_concurrency_limit: ${this.openaiConcurrencyLimit}`);
+    info(`ai_provider: ${this.aiProvider}`);
+    info(`ai_light_model: ${this.aiLightModel}`);
+    info(`ai_heavy_model: ${this.aiHeavyModel}`);
+    info(`ai_temperature: ${this.aiTemperature}`);
+    info(`ai_retries: ${this.aiRetries}`);
+    info(`ai_timeout_ms: ${this.aiTimeoutMs}`);
+    info(`ai_concurrency_limit: ${this.aiConcurrencyLimit}`);
     info(`github_concurrency_limit: ${this.githubConcurrencyLimit}`);
     info(`summary_token_limits: ${this.lightTokenLimits.string()}`);
     info(`review_token_limits: ${this.heavyTokenLimits.string()}`);
-    info(`api_base_url: ${this.apiBaseUrl}`);
+    info(`ai_base_url: ${this.aiBaseUrl}`);
     info(`language: ${this.language}`);
   }
 
@@ -138,11 +211,15 @@ export class PathFilter {
   }
 }
 
-export class OpenAIOptions {
+/**
+ * Bot options for configuring the AI model.
+ * Replaces the legacy OpenAIOptions class.
+ */
+export class BotOptions {
   model: string;
   tokenLimits: TokenLimits;
 
-  constructor(model = "gpt-3.5-turbo", tokenLimits: TokenLimits | null = null) {
+  constructor(model = "gpt-4o-mini", tokenLimits: TokenLimits | null = null) {
     this.model = model;
     if (tokenLimits != null) {
       this.tokenLimits = tokenLimits;
@@ -151,3 +228,8 @@ export class OpenAIOptions {
     }
   }
 }
+
+/**
+ * @deprecated Use BotOptions instead
+ */
+export class OpenAIOptions extends BotOptions {}

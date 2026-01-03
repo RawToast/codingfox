@@ -1,30 +1,30 @@
-name: 'CodeFox - AI-Powered Pull Request Reviewer'
+name: "CodeFox - AI-Powered Pull Request Reviewer"
 description:
-  'CodeFox - AI-Powered Pull Request Reviewer. Stop shipping slop. Start
-  shipping quality.'
+  "CodeFox - AI-Powered Pull Request Reviewer. Stop shipping slop. Start
+  shipping quality."
 branding:
-  icon: 'git-merge'
-  color: 'orange'
-author: 'CodeFox'
+  icon: "git-merge"
+  color: "orange"
+author: "CodeFox"
 inputs:
   debug:
     required: false
-    description: 'Enable debug mode'
-    default: 'false'
+    description: "Enable debug mode"
+    default: "false"
   max_files:
     required: false
     description:
-      'Max files to summarize and review. Less than or equal to 0 means no
-      limit.'
-    default: '150'
+      "Max files to summarize and review. Less than or equal to 0 means no
+      limit."
+    default: "150"
   review_simple_changes:
     required: false
-    description: 'Review even when the changes are simple'
-    default: 'false'
+    description: "Review even when the changes are simple"
+    default: "false"
   review_comment_lgtm:
     required: false
-    description: 'Leave comments even if the patch is LGTM'
-    default: 'false'
+    description: "Leave comments even if the patch is LGTM"
+    default: "false"
   path_filters:
     required: false
     description: |
@@ -140,54 +140,91 @@ inputs:
       !**/*.tfstate.backup
   disable_review:
     required: false
-    description: 'Only provide the summary and skip the code review.'
-    default: 'false'
+    description: "Only provide the summary and skip the code review."
+    default: "false"
   disable_release_notes:
     required: false
-    description: 'Disable release notes'
-    default: 'false'
+    description: "Disable release notes"
+    default: "false"
+
+  # New AI provider configuration
+  ai_provider:
+    required: false
+    description: "AI provider: openai, anthropic, or openai-compatible"
+    default: "openai"
+  ai_light_model:
+    required: false
+    description: "Model for quick tasks like summarization (e.g., gpt-4o-mini,
+      claude-3-5-haiku-20241022)"
+    default: "gpt-4o-mini"
+  ai_heavy_model:
+    required: false
+    description: "Model for complex tasks like code review (e.g., gpt-4o,
+      claude-sonnet-4-20250514)"
+    default: "gpt-4o"
+  ai_base_url:
+    required: false
+    description: "Custom base URL for openai-compatible providers"
+    default: ""
+  ai_temperature:
+    required: false
+    description: "Temperature for AI model (0.0-1.0)"
+    default: "0.05"
+  ai_timeout_ms:
+    required: false
+    description: "Timeout for AI API calls in milliseconds"
+    default: "360000"
+  ai_retries:
+    required: false
+    description: "Number of retries for AI API calls"
+    default: "5"
+  ai_concurrency_limit:
+    required: false
+    description: "How many concurrent API calls to make to AI providers?"
+    default: "6"
+
+  # Deprecated options (kept for backwards compatibility)
   openai_base_url:
     required: false
-    description: 'The url of the openai api interface.'
-    default: 'https://api.openai.com/v1'
+    description: "[DEPRECATED] Use ai_base_url instead"
+    default: ""
   openai_light_model:
     required: false
-    description:
-      'Model to use for simple tasks like summarizing diff on a file.'
-    default: 'gpt-3.5-turbo'
+    description: "[DEPRECATED] Use ai_light_model instead"
+    default: ""
   openai_heavy_model:
     required: false
-    description: 'Model to use for complex tasks such as code reviews.'
-    default: 'gpt-4'
+    description: "[DEPRECATED] Use ai_heavy_model instead"
+    default: ""
   openai_model_temperature:
     required: false
-    description: 'Temperature for GPT model'
-    default: '0.05'
+    description: "[DEPRECATED] Use ai_temperature instead"
+    default: ""
   openai_retries:
     required: false
-    description:
-      'How many times to retry OpenAI API in case of timeouts or errors?'
-    default: '5'
+    description: "[DEPRECATED] Use ai_retries instead"
+    default: ""
   openai_timeout_ms:
     required: false
-    description: 'Timeout for OpenAI API call in millis'
-    default: '360000'
+    description: "[DEPRECATED] Use ai_timeout_ms instead"
+    default: ""
   openai_concurrency_limit:
     required: false
-    description: 'How many concurrent API calls to make to OpenAI servers?'
-    default: '6'
+    description: "[DEPRECATED] Use ai_concurrency_limit instead"
+    default: ""
+
   github_concurrency_limit:
     required: false
-    description: 'How many concurrent API calls to make to GitHub?'
-    default: '6'
+    description: "How many concurrent API calls to make to GitHub?"
+    default: "6"
   system_message:
     required: false
-    description: 'System message to be sent to OpenAI'
+    description: "System message to be sent to the AI"
     default: |
       You are `@codefox` (aka `github-actions[bot]`), a language model 
-      trained by OpenAI. Your purpose is to act as a highly experienced 
-      software engineer and provide a thorough review of the code hunks
-      and suggest code snippets to improve key areas such as:
+      trained to be a highly experienced software engineer. Your purpose is 
+      to provide a thorough review of the code hunks and suggest code snippets 
+      to improve key areas such as:
         - Logic
         - Security
         - Performance
@@ -206,7 +243,7 @@ inputs:
       disregarding minor issues.
   summarize:
     required: false
-    description: 'The prompt for final summarization response'
+    description: "The prompt for final summarization response"
     default: |
       Provide your final response in markdown with the following content:
 
@@ -224,8 +261,8 @@ inputs:
   summarize_release_notes:
     required: false
     description:
-      'The prompt for generating release notes in the same chat as summarize
-      stage'
+      "The prompt for generating release notes in the same chat as summarize
+      stage"
     default: |
       Craft concise release notes for the pull request. 
       Focus on the purpose and user impact, categorizing changes as "New Feature", "Bug Fix", 
@@ -238,8 +275,8 @@ inputs:
     default: en-US
   bot_icon:
     required: false
-    description: 'The icon for the bot'
-    default: '🦊'
+    description: "The icon for the bot"
+    default: ""
 runs:
-  using: 'node20'
-  main: 'dist/index.js'
+  using: "node20"
+  main: "dist/index.js"
