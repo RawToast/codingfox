@@ -67,8 +67,8 @@ export class Options {
     systemMessage = "",
     // New AI provider options
     aiProvider = "openai",
-    aiLightModel = "gpt-4o-mini",
-    aiHeavyModel = "gpt-4o",
+    aiLightModel = "gpt-5-mini",
+    aiHeavyModel = "gpt-5.2",
     aiTemperature = "0.05",
     aiRetries = "5",
     aiTimeoutMs = "360000",
@@ -219,7 +219,7 @@ export class BotOptions {
   model: string;
   tokenLimits: TokenLimits;
 
-  constructor(model = "gpt-4o-mini", tokenLimits: TokenLimits | null = null) {
+  constructor(model = "gpt-5-mini", tokenLimits: TokenLimits | null = null) {
     this.model = model;
     if (tokenLimits != null) {
       this.tokenLimits = tokenLimits;
