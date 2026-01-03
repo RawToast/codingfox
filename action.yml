@@ -1,5 +1,7 @@
 name: 'CodeFox - AI-Powered Pull Request Reviewer'
-description: 'CodeFox - AI-Powered Pull Request Reviewer. Stop shipping slop. Start shipping quality.'
+description:
+  'CodeFox - AI-Powered Pull Request Reviewer. Stop shipping slop. Start
+  shipping quality.'
 branding:
   icon: 'git-merge'
   color: 'orange'
@@ -239,5 +241,5 @@ inputs:
     description: 'The icon for the bot'
     default: '🦊'
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'dist/index.js'
