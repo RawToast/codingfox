@@ -617,3 +617,48 @@ simpler than reimplementing.
 4. Test with real PRs using both providers
 5. Update documentation
 6. Release as v0.1.0
+
+---
+
+## Future Improvements
+
+### Token Counting with ai-tokenizer
+
+The current implementation uses `gpt-tokenizer` which works well for OpenAI models
+but uses a single encoding (cl100k_base) for all providers. For more accurate
+token counting across different providers, consider migrating to
+[ai-tokenizer](https://github.com/coder/ai-tokenizer):
+
+**Benefits:**
+- Model-specific encodings for accurate counts across all providers
+- First-class Vercel AI SDK support
+- No WASM, pure JS, 5-7x faster than tiktoken
+- High accuracy (97-99%+) for:
+  - OpenAI: gpt-5, gpt-5-mini, gpt-5-nano
+  - Anthropic: claude-sonnet-4.5, claude-haiku-4.5, claude-opus-4.5
+  - xAI: grok-3, grok-4
+  - Google: gemini-2.5, gemini-3
+  - DeepSeek: deepseek-v3
+  - ZAI/GLM: glm-4.5 (~96%)
+
+**Migration:**
+```typescript
+// Current (gpt-tokenizer)
+import { encode } from "gpt-tokenizer";
+export function getTokenCount(input: string): number {
+  return encode(input).length;
+}
+
+// Future (ai-tokenizer) - model-aware
+import Tokenizer, { models } from "ai-tokenizer";
+import * as encoding from "ai-tokenizer/encoding";
+
+// Select encoding based on provider/model
+const model = models["openai/gpt-5"]; // or "anthropic/claude-sonnet-4.5", "zai/glm-4.5"
+const tokenizer = new Tokenizer(encoding[model.encoding]);
+export function getTokenCount(input: string): number {
+  return tokenizer.count(input);
+}
+```
+
+**Note:** Each encoding is 2-8MB, so import selectively based on configured provider.

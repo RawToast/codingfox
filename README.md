@@ -1,4 +1,4 @@
-# 🦊 CodingFox: AI Code Reviews
+# CodingFox: AI Code Reviews
 
 ```
                                         ████                                
@@ -40,125 +40,50 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-orange.svg)](https://opensource.org/licenses/MIT)
 
+## Overview
 
-## 🎯 Overview
+**CodingFox** is an intelligent AI-powered code review assistant that revolutionizes your pull request workflow. Supporting multiple AI providers (OpenAI, Anthropic, and OpenAI-compatible endpoints), CodingFox provides instant, contextual code reviews that catch bugs, improve code quality, and accelerate your development cycle.
 
-**CodingFox** is an intelligent AI-powered code review assistant that revolutionizes your pull request workflow. Using advanced language models (GPT-3.5 Turbo and GPT-4), CodingFox provides instant, contextual code reviews that catch bugs, improve code quality, and accelerate your development cycle.
+## Key Features
 
-```ascii
-    ╔═══════════════════════════════════════════╗
-    ║   🦊 CodingFox AI Code Reviews            ║
-    ║   ─────────────────────────────          ║
-    ║   ✓ Instant PR Analysis                  ║
-    ║   ✓ Line-by-Line Suggestions             ║
-    ║   ✓ Bug Detection & Prevention           ║
-    ║   ✓ Code Quality Enhancement             ║
-    ╚═══════════════════════════════════════════╝
-```
-
-## 🚀 Why CodingFox?
-
-- **⚡ Lightning-Fast Reviews**: Get comprehensive code reviews in seconds, not hours
-- **🎯 Context-Aware Analysis**: Understands your codebase and provides relevant suggestions
-- **🛡️ Bug Prevention**: Catches potential issues before they reach production
-- **💡 Smart Suggestions**: Offers actionable improvements, not just criticism
-- **🔄 Continuous Learning**: Improves with every review based on your feedback
-- **💰 Cost-Effective**: Reduce review time by 60% while improving code quality
-
-## ✨ Key Features
-
-### 🔍 Intelligent Code Analysis
-- **Automated PR Summaries**: Generate comprehensive summaries and release notes
+- **Multi-Provider Support**: OpenAI (GPT-5), Anthropic (Claude), or any OpenAI-compatible API
+- **Instant PR Analysis**: Get comprehensive code reviews in seconds
 - **Line-by-Line Review**: Detailed suggestions for every code change
-- **Pattern Recognition**: Identifies anti-patterns and suggests best practices
-- **Security Analysis**: Flags potential security vulnerabilities
+- **Interactive Chat**: Tag `@codingfox` to ask questions about your code
+- **Smart Summaries**: Automatic PR summaries and release notes
+- **Customizable**: Tailor prompts, models, and review behavior to your needs
 
-### 🤖 Smart Automation
-- **Incremental Reviews**: Reviews each commit individually for better context
-- **Selective Analysis**: Skips trivial changes to focus on what matters
-- **Multi-Model Support**: Uses lightweight models for summaries, powerful ones for reviews
-- **Custom Prompts**: Tailor review focus to your team's needs
+## Quick Start
 
-### 💬 Interactive Features
-- **Chat with CodingFox**: Ask questions about specific code sections
-- **Test Generation**: Request test cases for your changes
-- **Code Simplification**: Get suggestions for reducing complexity
-- **Documentation Helper**: Generate or improve code documentation
+### 1. Add Your API Key to GitHub Secrets
 
-## 🚀 Quick Start Guide
+Go to your repository **Settings** > **Secrets and variables** > **Actions** > **New repository secret**:
 
-Get CodingFox running in your repository in under 5 minutes!
+| Provider | Secret Name | Where to Get It |
+|----------|-------------|-----------------|
+| OpenAI | `OPENAI_API_KEY` | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
+| Anthropic | `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com/) |
+| OpenAI-compatible | `AI_API_KEY` | Your provider's dashboard |
 
-### Prerequisites
+### 2. Create the Workflow
 
-Before you begin, ensure you have:
-- A GitHub repository where you want to add CodingFox
-- Admin access to the repository (to add secrets)
-- An OpenAI account (free tier works to start)
-
-### Step 1: Get Your OpenAI API Key
-
-1. **Sign up for OpenAI** (if you haven't already):
-   - Go to [OpenAI Platform](https://platform.openai.com/signup)
-   - Create your account
-
-2. **Generate an API Key**:
-   - Navigate to [API Keys page](https://platform.openai.com/account/api-keys)
-   - Click **"Create new secret key"**
-   - Give it a name (e.g., "CodingFox")
-   - **Copy the key immediately** (you won't see it again!)
-
-3. **Add Credits** (for new accounts):
-   - Go to [Billing](https://platform.openai.com/account/billing)
-   - Add at least $5 to get started (this will last for hundreds of PR reviews)
-
-### Step 2: Add OpenAI Key to GitHub Secrets
-
-1. **Navigate to your GitHub repository**
-
-2. **Go to Settings**:
-   - Click on the **Settings** tab in your repository
-   - Scroll down to **Security** section in the left sidebar
-   - Click on **Secrets and variables** → **Actions**
-
-3. **Add New Secret**:
-   - Click **"New repository secret"** button
-   - **Name**: `OPENAI_API_KEY`
-   - **Value**: Paste your OpenAI API key
-   - Click **"Add secret"**
-
-### Step 3: Create the CodingFox Workflow
-
-1. **Create the workflow directory** in your repository:
-   ```bash
-   mkdir -p .github/workflows
-   ```
-
-2. **Create the workflow file**:
-   - Create a new file: `.github/workflows/codingfox-review.yml`
-   - Copy and paste this configuration:
+Create `.github/workflows/codingfox-review.yml`:
 
 ```yaml
 name: CodingFox AI Review
 
-# Permissions needed for the action to work
 permissions:
   contents: read
   pull-requests: write
 
-# Trigger on pull requests and PR comments
 on:
   pull_request:
     types: [opened, synchronize, reopened]
   pull_request_review_comment:
     types: [created]
 
-# Prevent multiple reviews at the same time
 concurrency:
-  group:
-    ${{ github.repository }}-${{ github.event.number || github.head_ref ||
-    github.sha }}-${{ github.workflow }}-${{ github.event_name ==
-    'pull_request_review_comment' && 'pr_comment' || 'pr' }}
+  group: ${{ github.repository }}-${{ github.event.number || github.head_ref || github.sha }}-${{ github.workflow }}
   cancel-in-progress: ${{ github.event_name != 'pull_request_review_comment' }}
 
 jobs:
@@ -169,40 +94,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        with:
-          debug: false
-          review_simple_changes: false
-          review_comment_lgtm: false
 ```
 
-3. **Commit and push** the workflow file:
-   ```bash
-   git add .github/workflows/codingfox-review.yml
-   git commit -m "Add CodingFox AI code review"
-   git push
-   ```
+### 3. Create a Pull Request
 
-### Step 4: Test Your Setup
+CodingFox will automatically review your PR within 30-60 seconds!
 
-1. **Create a test pull request**:
-   - Make any small change in your repository
-   - Create a new branch: `git checkout -b test-codingfox`
-   - Make a change and commit
-   - Push and create a pull request
+## Provider Configuration
 
-2. **Watch CodingFox in action**:
-   - Within 30-60 seconds, CodingFox will comment on your PR
-   - You'll see a summary, code review comments, and release notes
-
-3. **Interact with CodingFox**:
-   - Try commenting `@codingfox help me write tests for this function`
-   - CodingFox will respond with helpful suggestions
-
-### Step 5: Customize CodingFox (Optional)
-
-#### Use GPT-4 for Better Reviews
-
-For more thorough and accurate reviews, upgrade to GPT-4:
+### OpenAI (Default)
 
 ```yaml
 - uses: codingfox/ai-pr-reviewer@latest
@@ -210,212 +110,170 @@ For more thorough and accurate reviews, upgrade to GPT-4:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
   with:
-    openai_heavy_model: gpt-4  # Better for code reviews
-    openai_light_model: gpt-3.5-turbo  # Keep for summaries
+    ai_provider: openai
+    ai_light_model: gpt-5-mini    # Fast, cheap - for summaries
+    ai_heavy_model: gpt-5.2       # Powerful - for code review
 ```
 
-#### Adjust Review Sensitivity
+### Anthropic Claude
 
 ```yaml
-with:
-  review_simple_changes: true  # Review even minor changes
-  review_comment_lgtm: true     # Comment even when code looks good
-  max_review_comments: 50       # Increase comment limit
+- uses: codingfox/ai-pr-reviewer@latest
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  with:
+    ai_provider: anthropic
+    ai_light_model: claude-haiku-4-5     # Fast, cheap
+    ai_heavy_model: claude-sonnet-4-5    # Powerful
 ```
 
-#### Focus Reviews on Specific Files
+### OpenAI-Compatible (OpenRouter, Together, Groq, etc.)
 
 ```yaml
-with:
-  path_filters: |
-    src/**
-    !test/**
-    !docs/**
-    !*.md
+- uses: codingfox/ai-pr-reviewer@latest
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    AI_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+  with:
+    ai_provider: openai-compatible
+    ai_base_url: https://openrouter.ai/api/v1
+    ai_light_model: meta-llama/llama-3-8b-instruct
+    ai_heavy_model: anthropic/claude-3.5-sonnet
 ```
 
-### 📊 Troubleshooting Guide
+## Model Recommendations
 
-| Issue | Solution |
-|-------|----------|
-| **CodingFox not commenting** | Check Actions tab for errors, verify OPENAI_API_KEY is set |
-| **"Rate limit exceeded"** | Add credits to OpenAI account or reduce `openai_concurrency_limit` |
-| **Reviews too verbose** | Set `review_simple_changes: false` |
-| **Missing some files** | Check `path_filters` and `max_files` settings |
-| **Timeout errors** | Increase `openai_timeout_ms` (default: 360000) |
+### OpenAI
 
-### 💡 Pro Tips
+| Use Case | Model | Cost |
+|----------|-------|------|
+| Budget-friendly testing | `gpt-5-nano` | $0.05/MTok in |
+| Balanced (default) | `gpt-5-mini` / `gpt-5.2` | $0.25 / $1.75 |
+| Maximum quality | `gpt-5.2-pro` | $1.75/MTok in |
 
-1. **Start with GPT-3.5**: It's very cost-effective for initial testing
-2. **Use path filters**: Focus on important directories like `src/`
-3. **Customize prompts**: Tailor reviews to your team's standards
-4. **Monitor costs**: Check OpenAI usage dashboard regularly
-5. **Iterate on feedback**: Adjust settings based on team preferences
+### Anthropic
 
-### 🎯 What Happens Next?
+| Use Case | Model | Cost |
+|----------|-------|------|
+| Fast & cheap | `claude-haiku-4-5` | $1/MTok in |
+| Balanced (recommended) | `claude-sonnet-4-5` | $3/MTok in |
+| Maximum quality | `claude-opus-4-5` | $15/MTok in |
 
-Once installed, CodingFox will:
-- ✅ Automatically review every new pull request
-- ✅ Generate PR summaries and release notes
-- ✅ Provide line-by-line code suggestions
-- ✅ Respond to your questions and requests
-- ✅ Learn from your codebase patterns
+### Production: Use Pinned Versions
 
-## 🎮 Usage Examples
-
-### Basic Interaction
-
-Simply create a pull request and CodingFox will automatically:
-1. Generate a comprehensive PR summary
-2. Review code changes line-by-line
-3. Suggest improvements and catch issues
-4. Create release notes
-
-### Chat with CodingFox
-
-Tag `@codingfox` in any PR comment:
-
-```
-@codingfox Can you suggest test cases for this function?
-```
-
-```
-@codingfox How can I improve the performance of this loop?
-```
-
-```
-@codingfox Is there a better design pattern for this implementation?
-```
-
-### Ignore Specific PRs
-
-Add to PR description to skip review:
-```
-@codingfox: ignore
-```
-
-## ⚙️ Configuration Options
-
-### Model Selection
+Model aliases (e.g., `claude-sonnet-4-5`) auto-update when new versions release. For consistent behavior in production, pin to specific versions:
 
 ```yaml
-with:
-  # For comprehensive reviews (recommended: gpt-4)
-  openai_heavy_model: gpt-4
-  
-  # For summaries and simple tasks
-  openai_light_model: gpt-3.5-turbo
-  
-  # Temperature for AI responses (0-1)
-  openai_temperature: 0.2
+# Development (auto-updates)
+ai_heavy_model: claude-sonnet-4-5
+
+# Production (stable)
+ai_heavy_model: claude-sonnet-4-5-20250929
 ```
+
+OpenAI equivalents: `gpt-5.2` vs `gpt-5.2-2025-12-11`
+
+## Configuration Reference
+
+### AI Provider Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `ai_provider` | Provider: `openai`, `anthropic`, or `openai-compatible` | `openai` |
+| `ai_light_model` | Model for summaries and simple tasks | `gpt-5-mini` |
+| `ai_heavy_model` | Model for code review | `gpt-5.2` |
+| `ai_base_url` | Custom API endpoint (for openai-compatible) | - |
+| `ai_temperature` | Response randomness (0.0-1.0) | `0.05` |
+| `ai_timeout_ms` | API timeout in milliseconds | `360000` |
+| `ai_retries` | Number of retry attempts | `5` |
+| `ai_concurrency_limit` | Max concurrent API calls | `6` |
 
 ### Review Behavior
 
-```yaml
-with:
-  # Review even simple changes like typos
-  review_simple_changes: false
-  
-  # Continue reviewing when changes look good
-  review_comment_lgtm: false
-  
-  # Maximum review comments per PR
-  max_review_comments: 30
-  
-  # Enable debug logging
-  debug: true
-```
+| Option | Description | Default |
+|--------|-------------|---------|
+| `review_simple_changes` | Review minor changes (typos, formatting) | `false` |
+| `review_comment_lgtm` | Comment when code looks good | `false` |
+| `max_files` | Max files to review (0 = unlimited) | `0` |
+| `path_filters` | Glob patterns for files to include/exclude | - |
+| `debug` | Enable verbose logging | `false` |
 
 ### Custom Prompts
-
-Customize CodingFox's personality and focus:
 
 ```yaml
 with:
   system_message: |
     You are @codingfox, an expert code reviewer focused on:
     - Security best practices
-    - Performance optimization
+    - Performance optimization  
     - Clean code principles
-    - Test coverage
-    
-    Be constructive, specific, and friendly in your feedback.
-  
-  summarize_prompt: |
-    Provide a concise summary focusing on:
-    - Main changes and their purpose
-    - Potential impact on the system
-    - Areas requiring special attention
+    Be constructive and specific in your feedback.
 ```
 
-## 📊 Cost Estimation
+## Interactive Chat
 
-| Model | Use Case | Estimated Cost |
-|-------|----------|----------------|
-| GPT-3.5 Turbo | Summaries | ~$0.002 per PR |
-| GPT-4 | Full Review | ~$0.10-0.50 per PR |
+Tag `@codingfox` in any PR comment:
 
-**Typical Usage**: A 20-developer team reviewing 50 PRs/day costs approximately $20-30/day with GPT-4.
+```
+@codingfox Can you suggest test cases for this function?
+@codingfox How can I improve the performance here?
+@codingfox Is there a security concern with this approach?
+```
 
-## 🔒 Security & Privacy
+## Skip Review
 
-- **Data Processing**: Code is sent to OpenAI's API for analysis
-- **Data Retention**: OpenAI API has strict data usage policies
-- **Compliance**: Review with your security team for sensitive repositories
-- **Self-Hosting**: Contact us for on-premise deployment options
+Add to your PR description:
+```
+@codingfox: ignore
+```
 
-## 🛠️ Development
+## Migration from v0.x
 
-### Prerequisites
-- Node.js 17+
-- npm or yarn
+If you're upgrading from an older version using `openai_*` options, update to the new `ai_*` options:
 
-### Setup
+| Old Option | New Option |
+|------------|------------|
+| `openai_light_model` | `ai_light_model` |
+| `openai_heavy_model` | `ai_heavy_model` |
+| `openai_model_temperature` | `ai_temperature` |
+| `openai_timeout_ms` | `ai_timeout_ms` |
+| `openai_retries` | `ai_retries` |
+| `openai_concurrency_limit` | `ai_concurrency_limit` |
+| `openai_base_url` | `ai_base_url` |
+
+The old options still work but will show deprecation warnings.
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| CodingFox not commenting | Check Actions tab for errors, verify API key is set |
+| "Rate limit exceeded" | Add credits to your account or reduce `ai_concurrency_limit` |
+| Wrong provider used | Ensure `ai_provider` matches your API key |
+| Timeout errors | Increase `ai_timeout_ms` |
+| Reviews too verbose | Set `review_simple_changes: false` |
+
+## Development
+
 ```bash
 # Install dependencies
-npm install
+bun install
 
-# Build and package
-npm run build && npm run package
+# Run all checks
+bun run all  # typecheck, lint, format, test, build
 
-# Run tests
-npm test
+# Individual commands
+bun run typecheck
+bun run lint
+bun run test
+bun run build
 ```
 
-### Contributing
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-## 🦊 CodingFox vs Others
-
-| Feature | CodingFox | Traditional Reviews | Other AI Tools |
-|---------|-----------|-------------------|----------------|
-| Review Speed | ⚡ Instant | 🐌 Hours/Days | ⚡ Instant |
-| Context Understanding | ✅ Full | ✅ Full | ⚠️ Limited |
-| Consistency | ✅ 100% | ❌ Variable | ✅ 100% |
-| Availability | ✅ 24/7 | ❌ Business Hours | ✅ 24/7 |
-| Learning Curve | ✅ None | ❌ Team Dependent | ⚠️ Moderate |
-| Customization | ✅ Extensive | ✅ Full | ⚠️ Limited |
-| Cost | 💰 Low | 💰💰💰 High | 💰💰 Medium |
-
-## 📈 Success Stories
-
-> "CodingFox reduced our PR review time by 65% while catching 40% more bugs before production." - **Tech Lead, Fortune 500**
-
-> "The contextual suggestions are incredible. It's like having a senior developer review every line of code." - **Startup CTO**
-
-> "We save $50k+ annually on review time alone. CodingFox pays for itself in days." - **Engineering Manager**
-
-## 📜 License
+## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
-
-```ascii
-    /\_/\  
-   ( ^.^ )  Made with ❤️ by CodingFox Team
-    (")_(")  Happy Coding! 🦊
-```
 
 **CodingFox** - *Elevating Code Quality, One Review at a Time*
